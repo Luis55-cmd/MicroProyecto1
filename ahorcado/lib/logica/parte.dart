@@ -10,6 +10,8 @@ var matrix = [
   ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
 ];
 
+int contadorerrores = 0;
+
 var lista = [
   'PERRO',
   'GATO',
@@ -38,3 +40,25 @@ var lista = [
   'BRUJULA',
   'SANDWICH',
 ];
+
+void checkLetra(String letra) {
+  if (lista[random1].contains(letra)) {
+    String palabra = lista[random1];
+    for (var i = 0; i < palabra.length; i++) {
+      int newnum = 2 * i;
+      cambio(newnum, letra);
+    }
+  } else {
+    contadorerrores--;
+  }
+}
+
+String cambio(int j, String l) {
+  String c = textomod.replaceRange(j, j + 1, l);
+  return c;
+}
+
+String prueba(int contadorerrores) {
+  String hola = contadorerrores.toString();
+  return hola;
+}

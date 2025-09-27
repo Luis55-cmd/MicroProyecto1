@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ahorcado/logica/parte.dart';
+import 'package:ahorcado/widget1/widget2.dart';
+
 
 class Ahorcado1 extends StatelessWidget {
   const Ahorcado1({super.key});
@@ -30,6 +32,7 @@ class ColumnaBody extends StatelessWidget {
 }
 
 String _textodefault = '_ ';
+String textomod = textodefault * lista[random1].length;
 
 class Adivina extends StatelessWidget {
   const Adivina({super.key});
@@ -39,6 +42,7 @@ class Adivina extends StatelessWidget {
     return const Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+         Padding(padding: EdgeInsetsGeometry.only(top: 100)),
         Text('Adivina la palabra siguiente', style: TextStyle(fontSize: 21)),
       ],
     );
@@ -55,9 +59,7 @@ class Letras extends StatelessWidget {
       spacing: 10,
       children: [
         Text(
-          _textodefault *
-              lista[random1]
-                  .length, //AQUI SE PONE LA LONGITUD DE LA PALABRA ALEATORIA
+          textomod, //AQUI SE PONE LA LONGITUD DE LA PALABRA ALEATORIA
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 100),
         ),
@@ -72,9 +74,12 @@ class Juego extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
     return Row(
       children: [
-        //AQUI SE PONEN 2 COLUMNAS 1- PARA EL AHORCADO Y 2- PARA EL TECLADO
+        Padding(padding: EdgeInsetsGeometry.only(top: 200)),
+        Stickman(),
+        Teclado(),
       ],
     );
   }
