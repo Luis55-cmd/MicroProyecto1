@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'game_logic.dart';
+import 'score_manager.dart';
 
 class GamePage extends StatefulWidget {
   const GamePage({super.key});
@@ -29,10 +30,64 @@ class _GamePageState extends State<GamePage> {
     });
   }
 
+  void _handleHint() {
+    if (_gameLogic.isGameOver) return;
+
+    setState(() {
+      bool success = _gameLogic.getHint();
+
+      if (!success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _gameLogic.isGameWon
+                  ? '¡Ya adivinaste la palabra!'
+                  : 'Necesitas ${_gameLogic.hintPrice} puntos para una pista.',
+            ),
+            duration: const Duration(seconds: 2),
+            backgroundColor: _gameLogic.isGameWon ? Colors.green : Colors.red,
+          ),
+        );
+      }
+    });
+  }
+
   void _resetGame() {
     setState(() {
       _gameLogic.resetGame();
     });
+  }
+
+  //WIDGET DE PUNTAJE ACTUAL
+  Widget _buildScorePanel() {
+    return Card(
+      elevation: 4,
+      color: Colors.deepOrange.shade50,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              '📊PUNTAJE ACTUAL:',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.deepOrange,
+              ),
+            ),
+            Text(
+              '${_gameLogic.currentScore} Pts',
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   //Widget para el Dibujo del Ahorcado
@@ -66,7 +121,7 @@ class _GamePageState extends State<GamePage> {
 
     return Center(
       child: Container(
-        width: 150,
+        width: 300,
         padding: const EdgeInsets.all(10.0),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.blueGrey, width: 3),
@@ -80,8 +135,14 @@ class _GamePageState extends State<GamePage> {
               textAlign: TextAlign.center,
             ),
             Text(
-              'Intentos: ${_gameLogic.remainingAttempts}',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              '❌ Intentos Restantes: ${_gameLogic.remainingAttempts}',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: _gameLogic.remainingAttempts > 2
+                    ? Colors.teal
+                    : Colors.red,
+              ),
             ),
           ],
         ),
@@ -89,13 +150,55 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
-  //Widget del Teclado
+  //WIDGET DE PISTAS
+  Widget _buildHintPanel() {
+    bool canGetHint =
+        _gameLogic.currentScore >= _gameLogic.hintPrice &&
+        !_gameLogic.isGameOver;
+
+    return Card(
+      elevation: 4,
+      color: Colors.blue.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '💡 Pista (Ayuda)',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'Costo: ${_gameLogic.hintPrice} Pts',
+                  style: TextStyle(color: Colors.blue.shade700),
+                ),
+              ],
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.lightbulb_outline),
+              label: const Text('REVELAR LETRA'),
+              onPressed: canGetHint ? _handleHint : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade700,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.grey.shade300,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  //WIDGET DEL TECLADO
   Widget _buildKeyboard() {
     const String alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     List<Widget> rows = [];
     int start = 0;
     int end = 0;
-
     List<int> splits = [10, 9, 7];
 
     for (int count in splits) {
@@ -107,20 +210,23 @@ class _GamePageState extends State<GamePage> {
         bool isCorrect = isGuessed && _gameLogic.wordToGuess.contains(letter);
 
         return Padding(
-          padding: const EdgeInsets.all(2.0),
+          padding: const EdgeInsets.all(3.0),
           child: ElevatedButton(
             onPressed: isGuessed || _gameLogic.isGameOver
                 ? null
                 : () => _handleLetterPress(letter),
             style: ElevatedButton.styleFrom(
               backgroundColor: isGuessed
-                  ? (isCorrect ? Colors.green[300] : Colors.red[300])
-                  : Colors.blueGrey[50],
-              foregroundColor: Colors.black,
-              minimumSize: const Size(30, 30),
+                  ? (isCorrect ? Colors.green.shade600 : Colors.red.shade600)
+                  : Colors.teal.shade50,
+              foregroundColor: isGuessed ? Colors.white : Colors.black,
+              minimumSize: const Size(40, 40),
               padding: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
-            child: Text(letter, style: const TextStyle(fontSize: 16)),
+            child: Text(letter, style: const TextStyle(fontSize: 20)),
           ),
         );
       }).toList();
@@ -134,17 +240,158 @@ class _GamePageState extends State<GamePage> {
       start = end;
     }
 
-    return Column(children: rows);
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+      color: Colors.white,
+      child: Column(children: rows),
+    );
   }
 
-  //Estructura Principal del Scaffold
+  // WIDGET auxiliar para mostrar la info de letras
+  Widget _buildLetterInfo({
+    required String title,
+    required String letters,
+    required Color color,
+  }) {
+    Color baseColor = color;
+    Color borderColor = Color.alphaBlend(
+      Colors.black.withOpacity(0.3),
+      baseColor,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: baseColor.value == Colors.green.value
+            ? Colors.green.withOpacity(0.1)
+            : Colors.red.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: borderColor, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Color.alphaBlend(Colors.black.withOpacity(0.8), baseColor),
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(letters, style: const TextStyle(fontSize: 18, letterSpacing: 1)),
+        ],
+      ),
+    );
+  }
+
+  //WIDGET auxiliar para las píldoras de puntuación del historial
+  Widget _ScorePill({
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Text(title, style: TextStyle(fontSize: 12, color: color)),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Color(color.value).withAlpha(25),
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: color, width: 1),
+          ),
+          child: Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Color.alphaBlend(Colors.black.withOpacity(0.9), color),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  //FUNCIÓN PARA MOSTRAR EL DIÁLOGO DEL HISTORIAL
+  void _showHighscoresDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          contentPadding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 0),
+
+          actions: <Widget>[
+            TextButton(
+              child: const Text('CERRAR', style: TextStyle(color: Colors.teal)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showGameResultDialog(bool won) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(won ? '🎉 ¡GANASTE! 🎉' : '😭 ¡PERDISTE! 😭'),
+          content: Text(
+            'La palabra era: ${_gameLogic.wordToGuess}\n'
+            'Puntaje Final: ${_gameLogic.currentScore} Pts\n\n'
+            'Intentos fallidos: ${_gameLogic.incorrectGuesses}',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text(
+                'Jugar de Nuevo',
+                style: TextStyle(color: Colors.teal),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _resetGame();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  //ESTRUCTURA PRINCIPAL DEL SCAFFOLD
   @override
   Widget build(BuildContext context) {
+    Set<String> correctLetters = _gameLogic.guessedLetters
+        .where((l) => _gameLogic.wordToGuess.contains(l))
+        .toSet();
+    Set<String> incorrectLetters = _gameLogic.guessedLetters
+        .where((l) => !_gameLogic.wordToGuess.contains(l))
+        .toSet();
+
+    String correctLettersDisplay = correctLetters.join(', ');
+    String incorrectLettersDisplay = incorrectLetters.join(', ');
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('El Ahorcado'),
-        backgroundColor: Colors.blueGrey,
+        title: const Text('El Ahorcado en Flutter'),
+        backgroundColor: Colors.teal.shade700,
+        foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.emoji_events),
+            onPressed: _showHighscoresDialog,
+            tooltip: 'Ver Histórico',
+          ),
+
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _resetGame,
@@ -152,22 +399,58 @@ class _GamePageState extends State<GamePage> {
           ),
         ],
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            _buildScorePanel(),
+            const SizedBox(height: 20),
+
             _buildHangman(),
+            const SizedBox(height: 20),
+
+            _buildHintPanel(),
+            const SizedBox(height: 20),
+
             // Palabra a Adivinar
-            Center(
-              child: Text(
-                _gameLogic.maskedWord,
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 8,
+            Card(
+              elevation: 4,
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Center(
+                  child: Text(
+                    _gameLogic.maskedWord,
+                    style: const TextStyle(
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 10,
+                      color: Colors.teal,
+                    ),
+                  ),
                 ),
               ),
+            ),
+            const SizedBox(height: 20),
+
+            // Estadísticas de letras
+            _buildLetterInfo(
+              title: '✅Letras Correctas (${correctLetters.length})',
+              letters: correctLettersDisplay.isNotEmpty
+                  ? correctLettersDisplay
+                  : 'Adivina la primera letra...',
+              color: Colors.green,
+            ),
+            const SizedBox(height: 10),
+
+            _buildLetterInfo(
+              title: '🚨Letras Incorrectas (${incorrectLetters.length})',
+              letters: incorrectLettersDisplay.isNotEmpty
+                  ? incorrectLettersDisplay
+                  : 'Ninguna',
+              color: Colors.red,
             ),
             const SizedBox(height: 30),
 
