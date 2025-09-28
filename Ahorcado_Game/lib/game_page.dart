@@ -114,22 +114,22 @@ class _GamePageState extends State<GamePage> {
         hangmanDesign = '🌳\n\n\n\n';
         break;
       case 1:
-        hangmanDesign = '🤕\n\n\n\n';
+        hangmanDesign = 'O\n\n\n\n';
         break;
       case 2:
-        hangmanDesign = '🤕\n 👕\n\n\n';
+        hangmanDesign = 'O\n|\n\n\n';
         break;
       case 3:
-        hangmanDesign = '🤕\n/👕\n\n\n';
+        hangmanDesign = 'O\n/|\n\n\n';
         break;
       case 4:
-        hangmanDesign = '🤕\n/👕\\\n\n\n';
+        hangmanDesign = 'O\n/|\\\n\n\n';
         break;
       case 5:
-        hangmanDesign = '🤕\n/👕\\\n/ \n\n';
+        hangmanDesign = 'O\n/|\\\n/ \n\n';
         break;
       case 6:
-        hangmanDesign = '💀\n/👕\\\n/ \\\n\n';
+        hangmanDesign = '💀\n/|\\\n/ \\\n\n';
         break;
       default:
         hangmanDesign = '🌳\n\n\n\n';
@@ -403,7 +403,7 @@ class _GamePageState extends State<GamePage> {
           content: Text(
             'La palabra era: ${_gameLogic.wordToGuess}\n'
             'Puntaje Final: ${_gameLogic.currentScore} Pts\n\n'
-            'Intentos fallidos: ${_gameLogic.incorrectGuesses}',
+            'Intentos Totales: ${_gameLogic.attempts}',
           ),
           actions: <Widget>[
             TextButton(

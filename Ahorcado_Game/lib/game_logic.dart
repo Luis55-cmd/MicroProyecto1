@@ -19,11 +19,22 @@ class GameLogic {
     'BUCLE',
     'FRAMEWORK',
     'SERVIDOR',
+    'FLIPFLOP',
+    'ENTIDAD',
+    'RELACION',
+    'LATCH',
+    'QUERY',
+    'INTERNET',
+    'RED',
+    'BINARIO',
+    'HEXADECIMAL',
+    'DIGITAL',
   ];
 
   //Estas son las variables que se usan en el juego
   late String _wordToGuess;
   Set<String> _guessedLetters = {};
+  int _attempts = 0;
   int _incorrectGuesses = 0;
   final int maxIncorrectGuesses = 6; // Intentos máximos
   int _currentScore = 0;
@@ -31,6 +42,7 @@ class GameLogic {
 
   String get wordToGuess => _wordToGuess;
   Set<String> get guessedLetters => _guessedLetters;
+  int get attempts => _attempts;
   int get incorrectGuesses => _incorrectGuesses;
   int get remainingAttempts => maxIncorrectGuesses - _incorrectGuesses;
   int get currentScore => _currentScore;
@@ -50,6 +62,7 @@ class GameLogic {
     _guessedLetters = {};
     _incorrectGuesses = 0;
     _currentScore = 0;
+    _attempts = 0;
   }
 
   // Genera la palabra oculta, por ejemplo: 'F L _ T T E R'
@@ -68,6 +81,7 @@ class GameLogic {
 
   // Lógica principal para intentar una letra
   bool tryLetter(String letter) {
+    _attempts++;
     String upperCaseLetter = letter.toUpperCase();
 
     if (_guessedLetters.contains(upperCaseLetter)) {
