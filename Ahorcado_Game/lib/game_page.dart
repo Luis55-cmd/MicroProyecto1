@@ -11,11 +11,15 @@ class GamePage extends StatefulWidget {
 
 class _GamePageState extends State<GamePage> {
   late GameLogic _gameLogic;
+  final HighscoreManager _highscoreManager = HighscoreManager();
 
   @override
   void initState() {
     super.initState();
     _startGame();
+    _highscoreManager.loadScores().then((_) {
+      setState(() {});
+    });
   }
 
   void _startGame() {
@@ -27,6 +31,12 @@ class _GamePageState extends State<GamePage> {
 
     setState(() {
       _gameLogic.tryLetter(letter);
+
+      if (_gameLogic.isGameOver) {
+        _highscoreManager.recordGame(_gameLogic.isGameWon).then((_) {
+          _showGameResultDialog(_gameLogic.isGameWon);
+        });
+      }
     });
   }
 
@@ -49,6 +59,12 @@ class _GamePageState extends State<GamePage> {
           ),
         );
       }
+
+      if (_gameLogic.isGameWon) {
+        _highscoreManager.recordGame(true).then((_) {
+          _showGameResultDialog(true);
+        });
+      }
     });
   }
 
@@ -69,7 +85,7 @@ class _GamePageState extends State<GamePage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              '📊PUNTAJE ACTUAL:',
+              'PUNTAJE ACTUAL:',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -90,7 +106,7 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
-  //Widget para el Dibujo del Ahorcado
+  //WIDGET DEL MUÑECO DEL AHORCADO
   Widget _buildHangman() {
     String hangmanDesign;
     switch (_gameLogic.incorrectGuesses) {
@@ -316,6 +332,46 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
+  //WIDGET DE CONTENIDO DEL HISTORIAL
+  Widget _buildHighscoresContent() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          '🏆 Histórico de Partidas',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Colors.teal,
+          ),
+        ),
+        const Divider(),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _ScorePill(
+              title: 'Jugadas',
+              value: _highscoreManager.gamesPlayed.toString(),
+              color: Colors.blueGrey,
+            ),
+            _ScorePill(
+              title: 'Ganadas',
+              value: _highscoreManager.gamesWon.toString(),
+              color: Colors.green,
+            ),
+            _ScorePill(
+              title: 'Perdidas',
+              value: _highscoreManager.gamesLost.toString(),
+              color: Colors.red,
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
   //FUNCIÓN PARA MOSTRAR EL DIÁLOGO DEL HISTORIAL
   void _showHighscoresDialog() {
     showDialog(
@@ -323,7 +379,7 @@ class _GamePageState extends State<GamePage> {
       builder: (BuildContext context) {
         return AlertDialog(
           contentPadding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 0),
-
+          content: _buildHighscoresContent(),
           actions: <Widget>[
             TextButton(
               child: const Text('CERRAR', style: TextStyle(color: Colors.teal)),
@@ -437,7 +493,7 @@ class _GamePageState extends State<GamePage> {
 
             // Estadísticas de letras
             _buildLetterInfo(
-              title: '✅Letras Correctas (${correctLetters.length})',
+              title: 'Letras Correctas (${correctLetters.length})',
               letters: correctLettersDisplay.isNotEmpty
                   ? correctLettersDisplay
                   : 'Adivina la primera letra...',
@@ -446,7 +502,7 @@ class _GamePageState extends State<GamePage> {
             const SizedBox(height: 10),
 
             _buildLetterInfo(
-              title: '🚨Letras Incorrectas (${incorrectLetters.length})',
+              title: 'Letras Incorrectas (${incorrectLetters.length})',
               letters: incorrectLettersDisplay.isNotEmpty
                   ? incorrectLettersDisplay
                   : 'Ninguna',
