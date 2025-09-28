@@ -133,7 +133,6 @@ class _GamePageState extends State<GamePage> {
       );
       start = end;
     }
-
     return Column(children: rows);
   }
 
@@ -145,6 +144,7 @@ class _GamePageState extends State<GamePage> {
         children: [
           Column(
             children: [
+              Icon(Icons.insert_chart_outlined),
               Text(
                 "Puntaje: ${_gameLogic.correctGuesses - 2 * _gameLogic.incorrectGuesses}",
                 style: TextStyle(
@@ -153,8 +153,18 @@ class _GamePageState extends State<GamePage> {
                   color: Colors.white,
                 ),
               ),
+              Icon(Icons.refresh),
               Text(
                 'Intentos: ${_gameLogic.countAttempts}',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              Icon(Icons.play_arrow),
+              Text(
+                'Partidas jugadas: ${_gameLogic.playedGames}',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -174,7 +184,7 @@ class _GamePageState extends State<GamePage> {
                   color: Colors.white,
                 ),
               ),
-              Icon(Icons.one_x_mobiledata),
+              Icon(Icons.error_outline),
               Text(
                 'Letras no adivinadas: ${_gameLogic.incorrectGuesses}',
                 style: TextStyle(
@@ -226,6 +236,7 @@ class _GamePageState extends State<GamePage> {
             const SizedBox(height: 30),
 
             _buildKeyboard(),
+            puntajes(),
           ],
         ),
       ),

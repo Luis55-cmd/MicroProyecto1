@@ -10,8 +10,19 @@ class GameLogic {
     'PROYECTO',
     'ESTADO',
     'APLICACION',
+    'ALGORITMO',
+    'VARIABLE',
+    'FUNCION',
+    'COMPILADOR',
+    'DEPURAR',
+    'SINTAXIS',
+    'BUCLE',
+    'FRAMEWORK',
+    'SERVIDOR',
   ];
 
+  //estas son las variables que se usan en el juego
+  int _playedGames = 0;
   int _correctGuesses = 0;
   int _countAttempts = 0;
   late String _wordToGuess;
@@ -24,6 +35,7 @@ class GameLogic {
   int get incorrectGuesses => _incorrectGuesses;
   int get correctGuesses => _correctGuesses;
   int get countAttempts => _countAttempts;
+  int get playedGames => _playedGames;
   int get remainingAttempts => maxIncorrectGuesses - _incorrectGuesses;
 
   GameLogic() {
@@ -41,6 +53,7 @@ class GameLogic {
     _incorrectGuesses = 0;
     _countAttempts = 0;
     _correctGuesses = 0;
+    _playedGames++;
   }
 
   // Genera la palabra oculta, por ejemplo: 'F L _ T T E R'
@@ -60,20 +73,18 @@ class GameLogic {
   // Lógica principal para intentar una letra
   bool tryLetter(String letter) {
     String upperCaseLetter = letter.toUpperCase();
-
+    _countAttempts++;
     if (_guessedLetters.contains(upperCaseLetter)) {
       return false; // Ya se intentó
     }
 
     _guessedLetters.add(upperCaseLetter);
-    _countAttempts++;
-    _correctGuesses++;
 
     if (!_wordToGuess.contains(upperCaseLetter)) {
       _incorrectGuesses++;
-      _countAttempts++;
       return false; // Intento incorrecto
     }
+    _correctGuesses++;
     return true; // Intento correcto
   }
 
@@ -88,5 +99,7 @@ class GameLogic {
     return true;
   }
 
-  bool get isGameLost => _incorrectGuesses >= maxIncorrectGuesses;
+  bool get isGameLost {
+    return _incorrectGuesses >= maxIncorrectGuesses;
+  }
 }
